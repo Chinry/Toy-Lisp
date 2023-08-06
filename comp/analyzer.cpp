@@ -14,12 +14,12 @@ void Analyzer::append(Token *t)
         lastNode->addChild(tnode);
         lastNode = tnode;
     }
-    if(t->tag == CLOSEPAREN)
+    else if(t->tag == CLOSEPAREN)
     {
         delete t;
         lastNode = lastNode->parent;
     }
-    if(t->tag >= NUM)
+    else
     {
         TreeNode *tnode = new TreeNode(t);
         lastNode->addChild(tnode);

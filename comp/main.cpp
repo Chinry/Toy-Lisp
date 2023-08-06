@@ -15,10 +15,9 @@ int main(int argc, char *argv[])
     t = l.scan();
     while (t->tag != END)
     {    
-        //a.append(t);
-        std::cout << t->toString() << " ";
+        a.append(t);
         t = l.scan();
         
     }
-    //a.tree->print();
+    a.tree->print();
 }

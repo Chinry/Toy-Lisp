@@ -14,7 +14,7 @@ TreeNode::TreeNode(Token *d)
 
 void TreeNode::print()
 {
-    if(data != nullptr) {std::cout << data->tag << " ";
+    if(data != nullptr) {std::cout << data->toString() << " ";
 
     if(data->tag == OPENPAREN)
     {
