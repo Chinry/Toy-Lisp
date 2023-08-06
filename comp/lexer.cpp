@@ -28,15 +28,14 @@ Lexer::Lexer(std::fstream *s)
     
 }
 
-Token Lexer::scan()
+Token *Lexer::scan()
 {
     char peek = ' ';
     for( ; ; stream->get(peek))
     {
         if(stream->eof())
         {
-            Token t(END);
-            return t;
+            return new Token(END);
         }
         switch(peek)
         {
@@ -47,43 +46,23 @@ Token Lexer::scan()
             line++;
             continue;
         case '(':
-            {
-                Token t(OPENPAREN); 
-                return t;
-            }   
+                return new Token(OPENPAREN);   
         case ')':
-            {
-                Token t(CLOSEPAREN); 
-                return t;
-            }
+                return new Token(CLOSEPAREN);
         case '+':
-            {
-                Token t(ADDITION); 
-                return t;
-            }
+                return new Token(ADDITION);
         case '-':
-            {
-                Token t(SUBTRACTION); 
-                return t;
-            }
+                return new Token(SUBTRACTION);
         case '/':
-            {
-                Token t(DIVISION); 
-                return t;
-            }
+                return new Token(DIVISION);
         case '*':
-            {
-                Token t(MULTIPLICATION); 
-                return t;
-            }
+                return new Token(MULTIPLICATION);
         case '\'':
-            {
-                Token t(QUOTE);
-                return t;
-            }
+                return new Token(QUOTE);
         default:
             break;
         }
+        break;
     }
     if(isdigit(peek))
     {
@@ -93,7 +72,8 @@ Token Lexer::scan()
             v = 10 * v + (peek - '0');
             stream->get(peek);
         } while(isdigit(peek));
-        return Num(v);
+        stream->unget();
+        return new Num(v);
     }
     if(isalpha(peek) || peek == '#')
     {
@@ -103,12 +83,11 @@ Token Lexer::scan()
             b.sputc(peek);
             stream->get(peek);
         }while (isalnum(peek));
+        stream->unget();
         auto t = table.find(b.str());
-        if (t != table.end()) return *(t->second);
-        Word w(b.str());
-        return w;
+        if (t != table.end()) return t->second;
+        return new Word(b.str());
     }
-    Token t(ID);
-    return t;
+    return new Token(ERROR);
 
 }

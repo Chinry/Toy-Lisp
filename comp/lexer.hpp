@@ -8,7 +8,7 @@
 class Lexer
 {
 public:
-    Token scan();
+    Token *scan();
     Lexer(std::fstream *s);
 private:
     std::fstream *stream;
