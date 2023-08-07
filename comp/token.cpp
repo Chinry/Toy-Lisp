@@ -10,9 +10,10 @@ Num::Num(int val) : Token(NUM)
     value = val;
 }
 
-Word::Word(std::string lex) : Token(ID)
+Word::Word(std::string lex, int id) : Token(ID)
 {
     lexeme = lex;
+    identifier = id;
 }
 
 std::string Token::toString()

@@ -14,4 +14,5 @@ private:
     std::fstream *stream;
     int line;
     std::unordered_map<std::string, Token*> table;
+    int uniqueNum;
 };

@@ -6,6 +6,7 @@
 
 Lexer::Lexer(std::fstream *s)
 {
+    uniqueNum = 10;
     stream = s;
     std::unordered_map<std::string, Token*> m;
     table = m;
@@ -86,7 +87,9 @@ Token *Lexer::scan()
         stream->unget();
         auto t = table.find(b.str());
         if (t != table.end()) return t->second;
-        return new Word(b.str());
+        Word *w = new Word(b.str(), uniqueNum++);
+        table[b.str()] = w;
+        return w;
     }
     return new Token(ERROR);
 

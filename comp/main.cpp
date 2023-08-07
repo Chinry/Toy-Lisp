@@ -4,6 +4,7 @@
 #include "token.hpp"
 #include "lexer.hpp"
 #include "analyzer.hpp"
+#include "generator.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -12,12 +13,14 @@ int main(int argc, char *argv[])
     Lexer l(&f);
     Analyzer a;
     Token *t;
+    Generator g(0);
     t = l.scan();
     while (t->tag != END)
     {    
         a.append(t);
         t = l.scan();
-        
     }
-    a.tree->print();
+    g.generate(a.tree, std::vector<int>());
+    g.print();
+    return 0;
 }

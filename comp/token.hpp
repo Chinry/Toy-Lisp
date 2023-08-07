@@ -23,6 +23,7 @@ struct Num : Token
 struct Word : Token
 {
 	std::string lexeme;
-	Word(std::string lex);
+	int identifier;
+	Word(std::string lex, int id);
 	Word(std::string lex, TokenId t);
 };

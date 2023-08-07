@@ -1,11 +1,11 @@
 #pragma once
-#include <list>
+#include <vector>
 #include "token.hpp"
 
 struct TreeNode
 {
     TreeNode *parent;
-    std::list<TreeNode*> children;
+    std::vector<TreeNode*> children;
     Token *data;
     TreeNode(Token *d);
     void print();
