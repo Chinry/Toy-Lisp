@@ -7,18 +7,13 @@ void TreeNode::addChild(TreeNode *child)
     children.push_back(child);
 }
 
-TreeNode::~TreeNode()
-{
-    for(TreeNode* child : children)
-    {
-        delete child;
-    }
-    delete this;
-}
-
 TreeNode::TreeNode(Token *d)
 {
     data = d;
+}
+TreeNode::TreeNode()
+{
+
 }
 
 void TreeNode::print()

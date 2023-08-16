@@ -5,10 +5,15 @@ Token::Token(enum TokenId t)
     tag = t;
 }
 
+Token::Token(void)
+{}
+
 Num::Num(int val) : Token(NUM)
 {
     value = val;
 }
+
+Num::Num() : Token(NUM){}
 
 Word::Word(std::string lex, int id) : Token(ID)
 {

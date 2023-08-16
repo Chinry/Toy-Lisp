@@ -1,153 +1,113 @@
 #include "generator.hpp"
-#include <iostream>
+#include <sstream>
 
 Generator::Generator(int entries)
 {
-    varEntries = new std::vector<int>(200);
+    varEntries = std::vector<int>(200);
+    funcEntries = std::vector<TreeNode*>(50);
+    lastEntry = entries;
+    lastFuncEntry = -1;
 }
 
-
-
-
-std::vector<QuadEntry> Generator::generate(TreeNode *tree, std::vector<int> params)
+std::string Generator::generate(TreeNode *tree)
 {
-    treeTops.push(tree);
-    currentTree = tree;
-    nodeIt = 0;
-    for(;;)
-    {
-        switch(currentTree->children[nodeIt]->data->tag) //on element tag
-        {
-            case OPENPAREN:
-            {
-                handleOpenParen();
-                break;
-            }
-            case DEFINE:
-            {
-                handleDefine();
-                break;
-            }
-            case ADDITION:
-            case SUBTRACTION:
-            case MULTIPLICATION:
-            case DIVISION:
-            case MODULO:
-            {
-                handleIdOp(currentTree->children[nodeIt]->data->tag);
-                break;
-            }
-            default:
-            break;
-        }
-        if(++nodeIt == static_cast<int>(currentTree->children.size()))
-        {
-            handleListEnd();
-        }
-        if(currentTree == nullptr) 
-        {
-            break;
-        }
-
-    }
-    return entries;
-}
-
-void Generator::handleOpenParen()
-{
-    itStack.push(nodeIt);
-    currentTree = currentTree->children[nodeIt];
-    nodeIt = 0;
-}
-
-void Generator::handleListEnd()
-{
-    nodeIt = itStack.top();
-    itStack.pop();
-    currentTree = currentTree->parent;
-}
-
-void Generator::handleDefine()
-{
-    if(currentTree->children[nodeIt + 1]->data->tag == OPENPAREN)
-    {
-        handleDefineFunc();
-    }
+    if (tree->children.size() == 0)
+        return "";
     else
     {
-        handleDefineVar();
+        std::stringstream s;
+        for(TreeNode *child : tree->children)
+        {
+            if (child->children[0]->data->tag == DEFINE)
+                if(child->children[1]->data->tag == OPENPAREN)
+                    handleDefineFunc(child);
+                else
+                    handleDefineVar(child->children);
+            else
+                s << handleNumericalOperation(child->children) << "\n"; 
+        }
+        return s.str();
     }
-}
-
-
-void Generator::handleDefineFunc()
-{
-    std::vector<TreeNode*> parameters = currentTree->children[nodeIt + 1]->children;
-}
-
-void Generator::handleDefineVar()
-{
 
 }
 
-void Generator::handleIdOp(TokenId op)
+void Generator::handleDefineVar(std::vector<TreeNode*> items)
 {
-    std::vector<TreeNode*> currentList = currentTree->children;
-    QuadEntry entry;
-    entry.op.isId = true;
-    entry.op.id = op;
-    switch(currentList[1]->data->tag)
+    int id = (static_cast<Word*>(items[1]->data))->identifier;
+    int value = (static_cast<Num*>(items[2]->data))->value;
+    varEntries[id] = value;
+}
+
+void Generator::handleDefineFunc(TreeNode *item)
+{
+    lastFuncEntry++;
+    funcEntries[lastFuncEntry] = item;
+    int id = (static_cast<Word*>(item->children[1]->children[0]->data))->identifier;
+    varEntries[id] = lastFuncEntry;
+}
+
+int Generator::handleNumericalOperation(std::vector<TreeNode*> items)
+{
+
+    int operand1, operand2;
+    
+    if(items[1]->data->tag == OPENPAREN)
     {
-        case NUM:
-        {
-            entry.arg1.isVariable = false;
-            entry.arg1.value = (static_cast<Num*>(currentList[1]->data))->value;
-            break;
-        }
-        case ID:
-        {
-            entry.arg2.isVariable = true;
-            entry.arg2.value = (static_cast<Word*>(currentList[1]->data))->identifier;
-            break;
-        }
-        case OPENPAREN:
-        {
-            break;
-        }
-        default:
-            break;
-
-
-        
+        operand1 = handleNumericalOperation(items[1]->children);
     }
-    if (entries.size() == 0)
+    else if(items[1]->data->tag == ID)
     {
-        entry.result.isVariable = false;
-        entry.result.value = 0;
+        int id = (static_cast<Word*>(items[1]->data))->identifier;
+        operand1 = varEntries[id];
     }
-    entries.push_back(entry);
-    if (itStack.size() > 0){nodeIt = itStack.top();
-    itStack.pop();}
-    currentTree = currentTree->parent;
-
+    else 
+    {
+        operand1 = (static_cast<Num*>(items[1]->data))->value;
+    }
+    
+    
+    if(items[2]->data->tag == OPENPAREN)
+    {
+        operand2 = handleNumericalOperation(items[2]->children);
+    }
+    else if(items[2]->data->tag == ID)
+    {
+        int id = (static_cast<Word*>(items[2]->data))->identifier;
+        operand2 = varEntries[id];
+    }
+    else 
+    {
+        operand2 = (static_cast<Num*>(items[2]->data))->value;
+    }
+    
+    switch(items[0]->data->tag)
+    {
+    case ID:
+        copyFunctionParams(items, operand1, operand2);
+        return runStoredFunc(items);
+    case ADDITION:
+        return operand1 + operand2;
+    case SUBTRACTION:
+        return operand1 - operand2;
+    case MULTIPLICATION:
+        return operand1 * operand2;
+    case DIVISION:
+        return operand1 / operand2;
+    default:
+        return operand1;
+    }
 }
 
-
-
-
-void Generator::print()
+void Generator::copyFunctionParams(std::vector<TreeNode*> items, int operand1, int operand2)
 {
-    for(QuadEntry &e : entries)
-    {
-        if (e.op.isId)
-        {
-            std::cout << "OP Function At:" << e.op.address;
-        }
-        else
-        {
-            std::cout << "OP ID:" << e.op.id;
-        }
-        std::cout << " arg1:" << e.arg1.value << " arg2:" << e.arg2.value
-                << " result:" << e.result.value;
-    }
+    int funcAddress = varEntries[(static_cast<Word*>(items[0]->data))->identifier];
+    int var1Address = (static_cast<Word*>(funcEntries[funcAddress]->children[1]->children[1]->data))->identifier;
+    int var2Address = (static_cast<Word*>(funcEntries[funcAddress]->children[1]->children[2]->data))->identifier;
+    varEntries[var1Address] = operand1;
+    varEntries[var2Address] = operand2;
+}
+int Generator::runStoredFunc(std::vector<TreeNode*> items)
+{
+    int funcAddress = varEntries[(static_cast<Word*>(items[0]->data))->identifier];
+    return handleNumericalOperation((funcEntries[funcAddress])->children[2]->children);
 }

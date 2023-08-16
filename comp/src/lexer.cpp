@@ -4,7 +4,7 @@
 #include <sstream>
 #include <fstream>
 
-Lexer::Lexer(std::fstream *s)
+Lexer::Lexer(std::iostream *s)
 {
     uniqueNum = 10;
     stream = s;

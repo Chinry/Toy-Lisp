@@ -6,6 +6,11 @@ Analyzer::Analyzer()
     lastNode = tree;
 }
 
+Analyzer::~Analyzer()
+{
+    delete tree;
+}
+
 void Analyzer::append(Token *t)
 {
     if(t->tag == OPENPAREN)

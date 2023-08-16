@@ -4,7 +4,8 @@
 class Analyzer
 {
 public:
-    Analyzer(); 
+    Analyzer();
+    ~Analyzer();
     void append(Token *t);
     TreeNode *tree;
 private:

@@ -9,9 +9,9 @@ class Lexer
 {
 public:
     Token *scan();
-    Lexer(std::fstream *s);
+    Lexer(std::iostream *s);
 private:
-    std::fstream *stream;
+    std::iostream *stream;
     int line;
     std::unordered_map<std::string, Token*> table;
     int uniqueNum;

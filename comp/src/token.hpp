@@ -11,6 +11,7 @@ struct Token
 {
 	enum TokenId tag;
 	Token(enum TokenId t);
+	Token(void);
 	std::string toString();
 };
 
@@ -18,6 +19,7 @@ struct Num : Token
 {
 	int value;
 	Num(int val);
+	Num();
 };
 
 struct Word : Token

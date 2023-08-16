@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
         a.append(t);
         t = l.scan();
     }
-    g.generate(a.tree, std::vector<int>());
-    g.print();
+    std::string output = g.generate(a.tree);
+    std::cout << output;
     return 0;
 }

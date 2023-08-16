@@ -1,27 +1,20 @@
 #include <vector>
-#include "quad_entry.hpp"
 #include "linked_tree.hpp"
 #include <stack>
 #include <list>
 class Generator
 {
 public:
-    std::vector<QuadEntry> generate(TreeNode *tree, std::vector<int> params);
+    std::string generate(TreeNode *tree);
     Generator(int entries);
-    void print();
 private:
-    std::vector<QuadEntry> entries;
-    std::vector<int> *varEntries;
-    int lastVarEntry;
-    TreeNode* currentTree;
-    std::stack<int> itStack;
-    std::stack<TreeNode*> treeTops;
-    int nodeIt;
-    void handleOpenParen();
-    void handleListEnd();
-    void handleDefine();
-    void handleDefineVar();
-    void handleDefineFunc();
-    void handleIdOp(TokenId op);
-
+    std::vector<int> varEntries;
+    std::vector<TreeNode*> funcEntries;
+    int lastEntry;
+    int lastFuncEntry;
+    int handleNumericalOperation(std::vector<TreeNode*> items);
+    void handleDefineVar(std::vector<TreeNode*> items);
+    void handleDefineFunc(TreeNode *items);
+    void copyFunctionParams(std::vector<TreeNode*> items, int operand1, int operand2);
+    int runStoredFunc(std::vector<TreeNode*> items);
 };
