@@ -146,3 +146,22 @@ TEST(GeneratorOpTest, defineFuncAndUse)
 
    CHECK(result == "2\n");
 }
+
+TEST(GeneratorOpTest, defineFuncAndUseManyArgs)
+{
+   Generator g(0);
+   std::stringstream stream;
+   stream.str("(define (func a b c) (* a (* b c))) (func 3 2 3)");
+   Lexer l(&stream);
+   Analyzer a;
+   Token *t;
+   t = l.scan();
+   while (t->tag != END)
+   {    
+        a.append(t);
+       t = l.scan();
+   }
+   std::string result = g.generate(a.tree);
+
+   CHECK(result == "18\n");
+}

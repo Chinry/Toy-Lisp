@@ -49,62 +49,55 @@ void Generator::handleDefineFunc(TreeNode *item)
 int Generator::handleNumericalOperation(std::vector<TreeNode*> items)
 {
 
-    int operand1, operand2;
+    std::vector<int> operands;
+    for(long unsigned int i = 1; i < items.size(); i++)
+    {
+        if(items[i]->data->tag == OPENPAREN)
+        {
+            operands.push_back(handleNumericalOperation(items[i]->children));
+        }
+        else if(items[i]->data->tag == ID)
+        {
+            int id = (static_cast<Word*>(items[i]->data))->identifier;
+            operands.push_back(varEntries[id]);
+        }
+        else 
+        {
+            operands.push_back((static_cast<Num*>(items[i]->data))->value);
+        }
     
-    if(items[1]->data->tag == OPENPAREN)
-    {
-        operand1 = handleNumericalOperation(items[1]->children);
-    }
-    else if(items[1]->data->tag == ID)
-    {
-        int id = (static_cast<Word*>(items[1]->data))->identifier;
-        operand1 = varEntries[id];
-    }
-    else 
-    {
-        operand1 = (static_cast<Num*>(items[1]->data))->value;
     }
     
     
-    if(items[2]->data->tag == OPENPAREN)
-    {
-        operand2 = handleNumericalOperation(items[2]->children);
-    }
-    else if(items[2]->data->tag == ID)
-    {
-        int id = (static_cast<Word*>(items[2]->data))->identifier;
-        operand2 = varEntries[id];
-    }
-    else 
-    {
-        operand2 = (static_cast<Num*>(items[2]->data))->value;
-    }
     
     switch(items[0]->data->tag)
     {
     case ID:
-        copyFunctionParams(items, operand1, operand2);
+        copyFunctionParams(items, operands);
         return runStoredFunc(items);
     case ADDITION:
-        return operand1 + operand2;
+        return operands[0] + operands[1];
     case SUBTRACTION:
-        return operand1 - operand2;
+        return operands[0] - operands[1];
     case MULTIPLICATION:
-        return operand1 * operand2;
+        return operands[0] * operands[1];
     case DIVISION:
-        return operand1 / operand2;
+        return operands[0] / operands[1];
     default:
-        return operand1;
+        return operands[0];
     }
 }
 
-void Generator::copyFunctionParams(std::vector<TreeNode*> items, int operand1, int operand2)
+void Generator::copyFunctionParams(std::vector<TreeNode*> items, std::vector<int> operands)
 {
     int funcAddress = varEntries[(static_cast<Word*>(items[0]->data))->identifier];
-    int var1Address = (static_cast<Word*>(funcEntries[funcAddress]->children[1]->children[1]->data))->identifier;
-    int var2Address = (static_cast<Word*>(funcEntries[funcAddress]->children[1]->children[2]->data))->identifier;
-    varEntries[var1Address] = operand1;
-    varEntries[var2Address] = operand2;
+    std::vector<TreeNode*> params = funcEntries[funcAddress]->children[1]->children;
+
+    for (long unsigned int i = 1; i < params.size(); i++)
+    {
+        int varAddress = (static_cast<Word*>(params[i]->data))->identifier;
+        varEntries[varAddress] = operands[i - 1];
+    }
 }
 int Generator::runStoredFunc(std::vector<TreeNode*> items)
 {

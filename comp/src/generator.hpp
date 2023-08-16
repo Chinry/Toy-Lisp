@@ -15,6 +15,6 @@ private:
     int handleNumericalOperation(std::vector<TreeNode*> items);
     void handleDefineVar(std::vector<TreeNode*> items);
     void handleDefineFunc(TreeNode *items);
-    void copyFunctionParams(std::vector<TreeNode*> items, int operand1, int operand2);
+    void copyFunctionParams(std::vector<TreeNode*> items, std::vector<int> operands);
     int runStoredFunc(std::vector<TreeNode*> items);
 };
