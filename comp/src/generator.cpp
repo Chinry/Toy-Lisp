@@ -18,7 +18,11 @@ std::string Generator::generate(TreeNode *tree)
         std::stringstream s;
         for(TreeNode *child : tree->children)
         {
-            if (child->children[0]->data->tag == DEFINE)
+            if (isBoolCheckOp(child->children[0]->data->tag))
+            {
+                s << boolToString(handleBoolCheck(child->children)) << "\n";
+            }
+            else if (child->children[0]->data->tag == DEFINE)
                 if(child->children[1]->data->tag == OPENPAREN)
                     handleDefineFunc(child);
                 else
@@ -29,6 +33,35 @@ std::string Generator::generate(TreeNode *tree)
         return s.str();
     }
 
+}
+
+bool Generator::handleBoolCheck(std::vector<TreeNode*> items)
+{
+   std::vector<int> operands = handleOperands(items);
+   switch(items[0]->data->tag)
+    {
+    case GREATERTHAN:
+        return operands[0] > operands[1];
+    case EQUALS:
+        return operands[0] == operands[1];
+    case LESSTHAN:
+        return operands[0] < operands[1];
+    default:
+        return true;
+    }
+}
+
+std::string Generator::boolToString(bool b)
+{
+    if(b) return "#t";
+    else return "#f";
+}
+
+bool Generator::isBoolCheckOp(TokenId tag)
+{
+    if(tag == EQUALS || tag == GREATERTHAN || tag == LESSTHAN)
+        return true;
+    return false;
 }
 
 void Generator::handleDefineVar(std::vector<TreeNode*> items)
@@ -46,9 +79,8 @@ void Generator::handleDefineFunc(TreeNode *item)
     varEntries[id] = lastFuncEntry;
 }
 
-int Generator::handleNumericalOperation(std::vector<TreeNode*> items)
+std::vector<int> Generator::handleOperands(std::vector<TreeNode*> items)
 {
-
     std::vector<int> operands;
     for(long unsigned int i = 1; i < items.size(); i++)
     {
@@ -67,7 +99,14 @@ int Generator::handleNumericalOperation(std::vector<TreeNode*> items)
         }
     
     }
-    
+    return operands;
+}
+
+
+int Generator::handleNumericalOperation(std::vector<TreeNode*> items)
+{
+
+    std::vector<int> operands = handleOperands(items);
     
     
     switch(items[0]->data->tag)
@@ -103,4 +142,29 @@ int Generator::runStoredFunc(std::vector<TreeNode*> items)
 {
     int funcAddress = varEntries[(static_cast<Word*>(items[0]->data))->identifier];
     return handleNumericalOperation((funcEntries[funcAddress])->children[2]->children);
+}
+
+TaggedResult Generator::runThroughFunc(TreeNode *tree)
+{
+    TaggedResult r;
+        for(TreeNode *child : tree->children)
+        {
+            
+            if (child->children[0]->data->tag == DEFINE)
+                if(child->children[1]->data->tag == OPENPAREN)
+                    handleDefineFunc(child);
+                else
+                    handleDefineVar(child->children);
+            else if (isBoolCheckOp(child->children[0]->data->tag))
+            {
+                r.value = handleBoolCheck(child->children);
+                r.tag = BOOLEAN_TAG;
+            }
+            else
+            {
+                r.value = handleNumericalOperation(child->children);
+                r.tag = NUMBER_TAG;
+            }
+        }
+        return r;
 }

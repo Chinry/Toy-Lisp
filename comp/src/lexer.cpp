@@ -13,6 +13,7 @@ Lexer::Lexer(std::iostream *s)
     line = 0;
 
     table["lambda"] = new Token(LAMBDA);
+    table["if"] = new Token(IF);
     table["let"] = new Token(LET);
     table["define"] = new Token(DEFINE);
     table["cond"] = new Token(COND);
@@ -22,7 +23,6 @@ Lexer::Lexer(std::iostream *s)
     table["cons"] = new Token(CONS);
     table["cdr"] = new Token(CDR);
     table["car"] = new Token(CAR);
-    table["eq?"] = new Token(EQUALS);
     table["null?"] = new Token(ISNULL);
     table["quote"] = new Token(QUOTE);
     table["modulo"] = new Token(MODULO);
@@ -58,8 +58,12 @@ Token *Lexer::scan()
                 return new Token(DIVISION);
         case '*':
                 return new Token(MULTIPLICATION);
-        case '\'':
-                return new Token(QUOTE);
+        case '=':
+                return new Token(EQUALS);
+        case '>':
+                return new Token(GREATERTHAN);
+        case '<':
+                return new Token(LESSTHAN);
         default:
             break;
         }

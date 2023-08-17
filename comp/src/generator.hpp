@@ -1,5 +1,6 @@
 #include <vector>
 #include "linked_tree.hpp"
+#include "tagged_result.hpp"
 #include <stack>
 #include <list>
 class Generator
@@ -17,4 +18,9 @@ private:
     void handleDefineFunc(TreeNode *items);
     void copyFunctionParams(std::vector<TreeNode*> items, std::vector<int> operands);
     int runStoredFunc(std::vector<TreeNode*> items);
+    bool isBoolCheckOp(TokenId tag);
+    std::string boolToString(bool b);
+    bool handleBoolCheck(std::vector<TreeNode*> items);
+    std::vector<int> handleOperands(std::vector<TreeNode*> items);
+    TaggedResult runThroughFunc(TreeNode *tree);
 };
