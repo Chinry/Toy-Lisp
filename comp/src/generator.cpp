@@ -16,24 +16,32 @@ std::string Generator::generate(TreeNode *tree)
     else
     {
         std::stringstream s;
+        TaggedResult r;
         for(TreeNode *child : tree->children)
         {
-            if (isBoolCheckOp(child->children[0]->data->tag))
+            r = runLine(child);
+            switch(r.tag)
             {
-                s << boolToString(handleBoolCheck(child->children)) << "\n";
+                case NUMBER_TAG:
+                    s << r.value << "\n";
+                    break;
+                case BOOLEAN_TAG:
+                    s << boolToString(r.value) << "\n";
+                    break;
+                default:
+                    break;
             }
-            else if (child->children[0]->data->tag == DEFINE)
-                if(child->children[1]->data->tag == OPENPAREN)
-                    handleDefineFunc(child);
-                else
-                    handleDefineVar(child->children);
-            else
-                s << handleNumericalOperation(child->children) << "\n"; 
         }
         return s.str();
     }
 
 }
+
+
+
+
+
+
 
 bool Generator::handleBoolCheck(std::vector<TreeNode*> items)
 {
@@ -113,7 +121,7 @@ int Generator::handleNumericalOperation(std::vector<TreeNode*> items)
     {
     case ID:
         copyFunctionParams(items, operands);
-        return runStoredFunc(items);
+        return runStoredFunc(items).value;
     case ADDITION:
         return operands[0] + operands[1];
     case SUBTRACTION:
@@ -138,33 +146,58 @@ void Generator::copyFunctionParams(std::vector<TreeNode*> items, std::vector<int
         varEntries[varAddress] = operands[i - 1];
     }
 }
-int Generator::runStoredFunc(std::vector<TreeNode*> items)
+TaggedResult Generator::runStoredFunc(std::vector<TreeNode*> items)
 {
     int funcAddress = varEntries[(static_cast<Word*>(items[0]->data))->identifier];
-    return handleNumericalOperation((funcEntries[funcAddress])->children[2]->children);
+    return runThroughFunc((funcEntries[funcAddress])->children[2]);
 }
 
 TaggedResult Generator::runThroughFunc(TreeNode *tree)
 {
     TaggedResult r;
+    r.tag = EMPTY;
+    if(tree->children[0]->data->tag == OPENPAREN)
+    {
         for(TreeNode *child : tree->children)
         {
-            
-            if (child->children[0]->data->tag == DEFINE)
-                if(child->children[1]->data->tag == OPENPAREN)
-                    handleDefineFunc(child);
-                else
-                    handleDefineVar(child->children);
-            else if (isBoolCheckOp(child->children[0]->data->tag))
+            TaggedResult res = runLine(child);
+            if(res.tag != EMPTY)
             {
-                r.value = handleBoolCheck(child->children);
-                r.tag = BOOLEAN_TAG;
-            }
-            else
-            {
-                r.value = handleNumericalOperation(child->children);
-                r.tag = NUMBER_TAG;
+                r = res;
             }
         }
-        return r;
+    }
+    else 
+    {
+        TaggedResult res = runLine(tree);
+        if(res.tag != EMPTY)
+        {
+            r = res;
+        }
+    }
+    return r;
+}
+
+TaggedResult Generator::runLine(TreeNode* child)
+{
+    TaggedResult r;
+    if (child->children[0]->data->tag == DEFINE)
+    {
+        if(child->children[1]->data->tag == OPENPAREN)
+            handleDefineFunc(child);
+        else
+            handleDefineVar(child->children);
+        r.tag = EMPTY;
+    }
+    else if (isBoolCheckOp(child->children[0]->data->tag))
+    {
+        r.value = handleBoolCheck(child->children);
+        r.tag = BOOLEAN_TAG;
+    }
+    else
+    {
+        r.value = handleNumericalOperation(child->children);
+        r.tag = NUMBER_TAG;
+    }
+    return r;
 }
