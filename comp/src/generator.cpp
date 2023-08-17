@@ -40,9 +40,6 @@ std::string Generator::generate(TreeNode *tree)
 
 
 
-
-
-
 bool Generator::handleBoolCheck(std::vector<TreeNode*> items)
 {
    std::vector<int> operands = handleOperands(items);
@@ -156,7 +153,7 @@ TaggedResult Generator::runThroughFunc(TreeNode *tree)
 {
     TaggedResult r;
     r.tag = EMPTY;
-    if(tree->children[0]->data->tag == OPENPAREN)
+    if(tree->children.size() > 0 && tree->children[0]->data->tag == OPENPAREN)
     {
         for(TreeNode *child : tree->children)
         {
@@ -181,7 +178,24 @@ TaggedResult Generator::runThroughFunc(TreeNode *tree)
 TaggedResult Generator::runLine(TreeNode* child)
 {
     TaggedResult r;
-    if (child->children[0]->data->tag == DEFINE)
+    if (child->data->tag == NUM)
+    {
+        r.value = static_cast<Num*>(child->data)->value;
+        r.tag = NUMBER_TAG;
+    }
+    else if (child->children[0]->data->tag == IF)
+    {
+        r = runThroughFunc(child->children[1]);
+        if (r.value)
+        {
+            r = runThroughFunc(child->children[2]);
+        }
+        else 
+        {
+            r = runThroughFunc(child->children[3]);
+        }
+    }
+    else if (child->children[0]->data->tag == DEFINE)
     {
         if(child->children[1]->data->tag == OPENPAREN)
             handleDefineFunc(child);

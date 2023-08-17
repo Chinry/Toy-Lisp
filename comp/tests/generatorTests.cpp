@@ -184,3 +184,41 @@ TEST(GeneratorOpTest, canRunEquals)
 
    CHECK(result == "#t\n#f\n#t\n");
 }
+
+TEST(GeneratorOpTest, numberReturnsnumber)
+{
+   Generator g(0);
+   std::stringstream stream;
+   stream.str(" 1 ");
+   Lexer l(&stream);
+   Analyzer a;
+   Token *t;
+   t = l.scan();
+   while (t->tag != END)
+   {    
+        a.append(t);
+       t = l.scan();
+   }
+   std::string result = g.generate(a.tree);
+
+   CHECK(result == "1\n");
+}
+
+TEST(GeneratorOpTest, ifstatementruns)
+{
+   Generator g(0);
+   std::stringstream stream;
+   stream.str("(if (= 3 3) 1 2)");
+   Lexer l(&stream);
+   Analyzer a;
+   Token *t;
+   t = l.scan();
+   while (t->tag != END)
+   {    
+        a.append(t);
+       t = l.scan();
+   }
+   std::string result = g.generate(a.tree);
+
+   CHECK(result == "1\n");
+}
