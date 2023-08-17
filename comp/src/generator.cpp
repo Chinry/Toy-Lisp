@@ -7,6 +7,7 @@ Generator::Generator(int entries)
     funcEntries = std::vector<TreeNode*>(50);
     lastEntry = entries;
     lastFuncEntry = -1;
+    varStack.push(std::vector<StackElem>());
 }
 
 std::string Generator::generate(TreeNode *tree)
@@ -73,7 +74,7 @@ void Generator::handleDefineVar(std::vector<TreeNode*> items)
 {
     int id = (static_cast<Word*>(items[1]->data))->identifier;
     int value = (static_cast<Num*>(items[2]->data))->value;
-    varEntries[id] = value;
+    setIdValue(id, value);
 }
 
 void Generator::handleDefineFunc(TreeNode *item)
@@ -96,7 +97,7 @@ std::vector<int> Generator::handleOperands(std::vector<TreeNode*> items)
         else if(items[i]->data->tag == ID)
         {
             int id = (static_cast<Word*>(items[i]->data))->identifier;
-            operands.push_back(varEntries[id]);
+            operands.push_back(getIdValue(id));
         }
         else 
         {
@@ -108,6 +109,29 @@ std::vector<int> Generator::handleOperands(std::vector<TreeNode*> items)
 }
 
 
+int Generator::getIdValue(int identifier)
+{
+    for(long unsigned int i = 0; varStack.top().size() > i; i++)
+    {
+        if(varStack.top()[i].identifier == identifier)
+            return varStack.top()[i].value;
+    }
+    return varEntries[identifier];
+}
+
+void Generator::setIdValue(int identifier, int value)
+{
+    for(long unsigned int i = 0; varStack.top().size() > i; i++)
+    {
+        if(varStack.top()[i].identifier == identifier)
+        {
+            varStack.top()[i].value = value;
+            return;
+        }
+    }
+    varEntries[identifier] = value;
+}
+
 int Generator::handleNumericalOperation(std::vector<TreeNode*> items)
 {
 
@@ -117,8 +141,7 @@ int Generator::handleNumericalOperation(std::vector<TreeNode*> items)
     switch(items[0]->data->tag)
     {
     case ID:
-        copyFunctionParams(items, operands);
-        return runStoredFunc(items).value;
+        return runStoredFunc(items,operands).value;
     case ADDITION:
         return operands[0] + operands[1];
     case SUBTRACTION:
@@ -139,14 +162,20 @@ void Generator::copyFunctionParams(std::vector<TreeNode*> items, std::vector<int
 
     for (long unsigned int i = 1; i < params.size(); i++)
     {
-        int varAddress = (static_cast<Word*>(params[i]->data))->identifier;
-        varEntries[varAddress] = operands[i - 1];
+        StackElem elem;
+        elem.value = operands[i - 1];
+        elem.identifier = (static_cast<Word*>(params[i]->data))->identifier;
+        varStack.top().push_back(elem);
     }
 }
-TaggedResult Generator::runStoredFunc(std::vector<TreeNode*> items)
+
+TaggedResult Generator::runStoredFunc(std::vector<TreeNode*> items, std::vector<int> operands)
 {
+    varStack.push(std::vector<StackElem>());
+    copyFunctionParams(items, operands);
     int funcAddress = varEntries[(static_cast<Word*>(items[0]->data))->identifier];
     return runThroughFunc((funcEntries[funcAddress])->children[2]);
+    varStack.pop();
 }
 
 TaggedResult Generator::runThroughFunc(TreeNode *tree)

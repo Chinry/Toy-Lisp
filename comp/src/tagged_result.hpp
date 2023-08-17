@@ -5,3 +5,9 @@ struct TaggedResult
     int value;
     ResultTag tag;
 };
+
+struct StackElem
+{
+    int identifier;
+    int value;
+};

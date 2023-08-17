@@ -222,3 +222,22 @@ TEST(GeneratorOpTest, ifstatementruns)
 
    CHECK(result == "1\n");
 }
+
+TEST(GeneratorOpTest, recursion)
+{
+   Generator g(0);
+   std::stringstream stream;
+   stream.str("(define (factorial n) (if (= n 1) 1 (* n (factorial (- n 1)))))(factorial 5) ");
+   Lexer l(&stream);
+   Analyzer a;
+   Token *t;
+   t = l.scan();
+   while (t->tag != END)
+   {    
+        a.append(t);
+       t = l.scan();
+   }
+   std::string result = g.generate(a.tree);
+
+   CHECK(result == "120\n");
+}
