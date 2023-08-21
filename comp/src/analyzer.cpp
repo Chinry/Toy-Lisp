@@ -8,7 +8,7 @@ Analyzer::Analyzer()
 
 Analyzer::~Analyzer()
 {
-    delete tree;
+    tree->TreeNodeFree();
 }
 
 void Analyzer::append(Token *t)

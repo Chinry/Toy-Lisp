@@ -11,6 +11,7 @@ Lexer::Lexer(std::iostream *s)
     std::unordered_map<std::string, Token*> m;
     table = m;
     line = 0;
+    end = new Token(END);
 
     table["lambda"] = new Token(LAMBDA);
     table["if"] = new Token(IF);
@@ -29,6 +30,15 @@ Lexer::Lexer(std::iostream *s)
     
 }
 
+Lexer::~Lexer()
+{
+    for(auto kv : table)
+    {
+        delete kv.second;
+    }
+    delete end;
+}
+
 Token *Lexer::scan()
 {
     char peek = ' ';
@@ -36,7 +46,7 @@ Token *Lexer::scan()
     {
         if(stream->eof())
         {
-            return new Token(END);
+            return end;
         }
         switch(peek)
         {

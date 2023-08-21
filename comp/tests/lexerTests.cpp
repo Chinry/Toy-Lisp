@@ -19,10 +19,14 @@ TEST(LexerTests, readsCorrectTokens)
     std::vector<TokenId> scanned;
     t = l.scan();
     scanned.push_back(t->tag);
+    delete t;
     while (t->tag != END)
     {    
         t = l.scan();
         scanned.push_back(t->tag);
+        if (t->tag == OPENPAREN || t->tag == CLOSEPAREN ||
+            t->tag == ADDITION)
+            delete t;
     }
     
     CHECK_TRUE(scanned.size() == 13);
@@ -39,5 +43,6 @@ TEST(LexerTests, readsCorrectTokens)
     CHECK_TRUE(scanned[10] == CLOSEPAREN);
     CHECK_TRUE(scanned[11] == CLOSEPAREN);
     CHECK_TRUE(scanned[12] == END);
+
 }
 
