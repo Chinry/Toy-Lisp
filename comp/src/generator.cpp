@@ -212,6 +212,18 @@ TaggedResult Generator::runLine(TreeNode* child)
         r.value = static_cast<Num*>(child->data)->value;
         r.tag = NUMBER_TAG;
     }
+    else if (child->data->tag == FALSE || child->data->tag == TRUE)
+    {
+        if(child->data->tag == FALSE)
+        {
+            r.value = false;
+        }
+        else
+        {
+            r.value = true;
+        }
+        r.tag = BOOLEAN_TAG;
+    }
     else if (child->children[0]->data->tag == IF)
     {
         r = runThroughFunc(child->children[1]);

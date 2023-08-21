@@ -241,3 +241,22 @@ TEST(GeneratorOpTest, recursion)
 
    CHECK(result == "120\n");
 }
+
+TEST(GeneratorOpTest, truePrintBack)
+{
+   Generator g(0);
+   std::stringstream stream;
+   stream.str("#t ");
+   Lexer l(&stream);
+   Analyzer a;
+   Token *t;
+   t = l.scan();
+   while (t->tag != END)
+   {    
+        a.append(t);
+       t = l.scan();
+   }
+   std::string result = g.generate(a.tree);
+
+   CHECK(result == "#t\n");
+}
