@@ -12,7 +12,6 @@ private:
     std::stack<std::vector<StackElem>> varStack;
     std::vector<int> varEntries;
     std::vector<TreeNode*> funcEntries;
-    std::vector<ConsCell> cells;
     int lastEntry;
     int lastFuncEntry;
     int handleNumericalOperation(std::vector<TreeNode*> items);
@@ -28,6 +27,4 @@ private:
     TaggedResult runLine(TreeNode* child);
     int getIdValue(int identifier);
     void setIdValue(int identifier, int value);
-    int handleCreateList(std::vector<TreeNode*> items);
-    std::string listToString(int cellNum);
 };

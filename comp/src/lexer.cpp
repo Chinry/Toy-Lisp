@@ -97,7 +97,7 @@ Token *Lexer::scan()
         {
             b.sputc(peek);
             stream->get(peek);
-        }while (isalnum(peek) || peek == '?');
+        }while (isalnum(peek));
         stream->unget();
         auto t = table.find(b.str());
         if (t != table.end()) return t->second;
