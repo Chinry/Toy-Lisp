@@ -1,1 +1,0 @@
-g++ -o pomo -I/usr/lib64/wx/include/gtk3-unicode-3.0-gtk3 -I/usr/include/wx-3.0-gtk3 -D_FILE_OFFSET_BITS=64 -DWXUSINGDLL -D__WXGTK__ -pthread -L/usr/lib64 -pthread app.cpp frame.cpp main.cpp -lwx_gtk3u_xrc-3.0-gtk3 -lwx_gtk3u_html-3.0-gtk3 -lwx_gtk3u_qa-3.0-gtk3 -lwx_gtk3u_adv-3.0-gtk3 -lwx_gtk3u_core-3.0-gtk3 -lwx_baseu_xml-3.0-gtk3 -lwx_baseu_net-3.0-gtk3 -lwx_baseu-3.0-gtk3 
