@@ -1,4 +1,0 @@
-list = "("expr <expr>")"
-expr = list
-     | ID
-     | number
