@@ -8,6 +8,7 @@ Generator::Generator(int entries)
     lastEntry = entries;
     lastFuncEntry = -1;
     varStack.push(std::vector<StackElem>());
+    cells.push_back(ConsCell());
 }
 
 std::string Generator::generate(TreeNode *tree)
@@ -28,6 +29,9 @@ std::string Generator::generate(TreeNode *tree)
                     break;
                 case BOOLEAN_TAG:
                     s << boolToString(r.value) << "\n";
+                    break;
+                case LIST_TAG:
+                    s << listToString(r.value) << "\n";
                     break;
                 default:
                     break;
@@ -61,6 +65,31 @@ std::string Generator::boolToString(bool b)
 {
     if(b) return "#t";
     else return "#f";
+}
+
+std::string Generator::listToString(int cellNum)
+{
+    std::stringstream stream;
+    stream << "(";
+    while(cellNum != 0)
+    {
+        if(cells[cellNum].valueType == IS_INT)
+        {
+            stream << cells[cellNum].value;
+        }
+        else
+        {
+            stream << listToString(cells[cellNum].value);
+        }
+        cellNum = cells[cellNum].next;
+        if(cellNum != 0)
+        {
+            stream << " ";
+        }
+    }
+    stream << ")";
+    return stream.str();
+    
 }
 
 bool Generator::isBoolCheckOp(TokenId tag)
@@ -181,13 +210,13 @@ TaggedResult Generator::runStoredFunc(std::vector<TreeNode*> items, std::vector<
 TaggedResult Generator::runThroughFunc(TreeNode *tree)
 {
     TaggedResult r;
-    r.tag = EMPTY;
+    r.tag = EMPTY_TAG;
     if(tree->children.size() > 0 && tree->children[0]->data->tag == OPENPAREN)
     {
         for(TreeNode *child : tree->children)
         {
             TaggedResult res = runLine(child);
-            if(res.tag != EMPTY)
+            if(res.tag != EMPTY_TAG)
             {
                 r = res;
             }
@@ -196,7 +225,7 @@ TaggedResult Generator::runThroughFunc(TreeNode *tree)
     else 
     {
         TaggedResult res = runLine(tree);
-        if(res.tag != EMPTY)
+        if(res.tag != EMPTY_TAG)
         {
             r = res;
         }
@@ -242,7 +271,42 @@ TaggedResult Generator::runLine(TreeNode* child)
             handleDefineFunc(child);
         else
             handleDefineVar(child->children);
-        r.tag = EMPTY;
+        r.tag = EMPTY_TAG;
+    }
+    else if (child->children[0]->data->tag == CAR)
+    {
+        int value = runLine(child->children[1]).value;
+        if (cells[value].valueType == IS_INT)
+            r.tag = NUMBER_TAG;
+        else
+            r.tag = LIST_TAG;
+        r.value = cells[value].value;
+    }
+    else if (child->children[0]->data->tag == ISNULL)
+    {
+        r.tag = BOOLEAN_TAG;
+        TaggedResult listResult = runLine(child->children[1]);
+        if (listResult.tag == EMPTY_TAG)
+            r.value = true;
+        else
+            r.value = false;
+        
+    }
+    else if (child->children[0]->data->tag == CDR)
+    {
+        int value = runLine(child->children[1]).value;
+        if (cells[value].next == 0)
+            r.tag = EMPTY_TAG;
+        else
+        {
+            r.tag = LIST_TAG;
+            r.value = cells[value].next;
+        }
+    }
+    else if (child->children[0]->data->tag == LIST)
+    {
+        r.tag = LIST_TAG;
+        r.value = handleCreateList(child->children);
     }
     else if (isBoolCheckOp(child->children[0]->data->tag))
     {
@@ -255,4 +319,43 @@ TaggedResult Generator::runLine(TreeNode* child)
         r.tag = NUMBER_TAG;
     }
     return r;
+}
+
+int Generator::handleCreateList(std::vector<TreeNode*> items)
+{
+    cells.push_back(ConsCell());
+    int retcell = cells.size() - 1;
+    int lastCell = retcell;
+    cells[retcell].nextType = IS_POINTER;
+    cells[retcell].valueType = IS_INT;
+    cells[retcell].next = 0;
+    if(items[1]->data->tag == OPENPAREN)
+    {
+        cells[retcell].valueType = IS_POINTER;
+        cells[retcell].value = handleCreateList(items[1]->children);
+    }
+    else
+    {
+        cells[retcell].value = static_cast<Num*>(items[1]->data)->value;
+    }
+    for(unsigned long int i = 2; i < items.size(); i++)
+    {
+        cells.push_back(ConsCell());
+        int cellNum = cells.size() - 1;
+        if(items[i]->data->tag == OPENPAREN)
+        {
+            cells[cellNum].valueType = IS_POINTER;
+            cells[cellNum].value = handleCreateList(items[i]->children);
+        }
+        else
+        {
+            cells[cellNum].value = static_cast<Num*>(items[i]->data)->value;
+            cells[cellNum].valueType = IS_INT;
+        }
+        cells[cellNum].next = 0;
+        cells[cellNum].nextType = IS_POINTER;
+        cells[lastCell].next = cellNum;
+        lastCell = cellNum;
+    }
+    return retcell;
 }
